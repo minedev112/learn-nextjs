@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
 from .database import Base, engine
-from .routers import blogs, categories
+from .routers import authors, blogs, categories
 
 
 @asynccontextmanager
@@ -32,6 +32,7 @@ app.add_middleware(
 )
 
 app.include_router(categories.router, prefix="/api")
+app.include_router(authors.router, prefix="/api")
 app.include_router(blogs.router, prefix="/api")
 
 

@@ -1,6 +1,8 @@
+import math
+import re
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 
 # ---------- Category ----------
@@ -30,13 +32,43 @@ class CategoryOut(BaseModel):
     created_at: datetime
 
 
+# ---------- Author ----------
+class AuthorBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=120)
+    avatar_url: str | None = Field(None, max_length=500)
+    bio: str | None = None
+
+
+class AuthorCreate(AuthorBase):
+    pass
+
+
+class AuthorUpdate(BaseModel):
+    name: str | None = Field(None, min_length=1, max_length=120)
+    avatar_url: str | None = Field(None, max_length=500)
+    bio: str | None = None
+
+
+class AuthorOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    avatar_url: str | None
+    bio: str | None
+    created_at: datetime
+
+
 # ---------- Blog ----------
 class BlogBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     slug: str | None = Field(None, max_length=220, description="Auto-generated from title if omitted")
+    excerpt: str | None = Field(None, description="Short summary; derived from content if omitted")
     content: str = ""
+    cover_image: str | None = Field(None, max_length=500)
     published: bool = True
     category_id: int | None = None
+    author_id: int | None = None
 
 
 class BlogCreate(BlogBase):
@@ -46,9 +78,12 @@ class BlogCreate(BlogBase):
 class BlogUpdate(BaseModel):
     title: str | None = Field(None, min_length=1, max_length=200)
     slug: str | None = Field(None, max_length=220)
+    excerpt: str | None = None
     content: str | None = None
+    cover_image: str | None = Field(None, max_length=500)
     published: bool | None = None
     category_id: int | None = None
+    author_id: int | None = None
 
 
 class BlogOut(BaseModel):
@@ -57,12 +92,22 @@ class BlogOut(BaseModel):
     id: int
     title: str
     slug: str
+    excerpt: str | None
     content: str
+    cover_image: str | None
     published: bool
     category_id: int | None
+    author_id: int | None
     created_at: datetime
     updated_at: datetime
 
+    @computed_field  # read-time estimate at ~200 words/min, shown as "N min read"
+    @property
+    def read_time_minutes(self) -> int:
+        words = len(re.findall(r"\w+", self.content or ""))
+        return max(1, math.ceil(words / 200))
 
-class BlogWithCategory(BlogOut):
+
+class BlogWithRelations(BlogOut):
     category: CategoryOut | None = None
+    author: AuthorOut | None = None

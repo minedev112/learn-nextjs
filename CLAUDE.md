@@ -38,8 +38,8 @@ Standard layered FastAPI app under `backend/app/`, with a clean separation that'
 - **`main.py`** — app factory, CORS, mounts routers under `/api`. Creates tables via `Base.metadata.create_all` in the `lifespan` handler (no Alembic; swap in migrations if the schema starts evolving).
 - **`routers/`** (`blogs.py`, `categories.py`) — HTTP layer only: parse/validate, call `crud`, map missing rows to 404. No DB logic here.
 - **`crud.py`** — all SQLAlchemy queries. Routers never touch the ORM directly.
-- **`models.py`** — SQLAlchemy 2.0 typed models (`Mapped[...]`). `Blog.category_id` is `ON DELETE SET NULL`: deleting a category keeps its posts and nulls their `category_id`.
-- **`schemas.py`** — Pydantic v2. Note the split: list endpoints return `BlogOut` (no category, avoids N+1); detail/create/update return `BlogWithCategory`.
+- **`models.py`** — SQLAlchemy 2.0 typed models (`Mapped[...]`). `Blog` has `category_id` and `author_id`, both `ON DELETE SET NULL`: deleting a category/author keeps the posts and nulls the FK.
+- **`schemas.py`** — Pydantic v2. Note the split: list endpoints return `BlogOut` (flat, no relations, avoids N+1); detail/create/update return `BlogWithRelations` (embeds `category` + `author`). `read_time_minutes` is a `@computed_field` derived from `content` (not stored). `excerpt` is auto-derived from `content` in `crud` when omitted.
 - **`config.py`** — `pydantic-settings`; reads `DATABASE_URL` and `CORS_ORIGINS` from env/`.env`.
 - **`utils.py` / `seed.py`** — `slugify` + idempotent sample-data loader.
 
