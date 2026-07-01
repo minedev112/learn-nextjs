@@ -93,7 +93,9 @@ def run() -> None:
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        if db.scalar(select(models.Category)) is not None:
+        # Key the "already seeded" check off authors (only seeding creates them),
+        # so pre-existing junk categories don't block seeding.
+        if db.scalar(select(models.Author)) is not None:
             print("Database already seeded, skipping.")
             return
 

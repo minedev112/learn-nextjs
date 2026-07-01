@@ -25,10 +25,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    # Seed sample data on first boot, then start the server.
-    command: >
-      sh -c "python -m app.seed &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    # Startup (schema sync + seed + server) is handled by the image's CMD.
 
 volumes:
   pgdata:

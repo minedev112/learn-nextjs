@@ -23,5 +23,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -fsS http://localhost:8000/health || exit 1
 
-# Bind to 0.0.0.0 so the app is reachable from outside the container.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Ensure schema is current (non-destructive) and load sample data if empty,
+# then start the server. Bind to 0.0.0.0 so it's reachable outside the container.
+CMD ["sh", "-c", "python -m app.dbinit && python -m app.seed && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
