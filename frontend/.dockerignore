@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+build
+npm-debug.log*
+.git
+.gitignore
+.env*
+.DS_Store
+*.pem
+README.md
+CLAUDE.md
+AGENTS.md
+.vercel
