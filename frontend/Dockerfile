@@ -36,6 +36,8 @@ EXPOSE 3000
 
 # Alpine's busybox provides wget, which Coolify's healthcheck uses against "/".
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD wget -qO- http://localhost:3000/ >/dev/null 2>&1 || exit 1
+    CMD wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
 
-CMD ["node", "server.js"]
+# Force HOSTNAME=0.0.0.0 at runtime: Docker overrides the ENV above with the
+# container id, which would make Next bind only to eth0 (localhost refused).
+CMD ["sh", "-c", "HOSTNAME=0.0.0.0 exec node server.js"]
