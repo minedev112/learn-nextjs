@@ -10,7 +10,7 @@ API integration. **No authentication** — every endpoint is open.
 - List & filter blogs (by category, author, published state, title search) with pagination
 - List blogs within a category or by an author
 - Auto-generated URL slugs
-- PostgreSQL storage
+- PostgreSQL storage/ Hellos
 - Interactive docs at `/docs` (Swagger) and `/redoc`
 - Dockerfile + docker-compose (API + Postgres) ready for CI/CD
 
