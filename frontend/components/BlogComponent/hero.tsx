@@ -1,6 +1,7 @@
 export default function Hero() {
     return (
           <section className="text-center pt-20 pb-6">
+            
       <h1 className="text-5xl font-bold">
         The Very Simple NextJs Blog
       </h1>

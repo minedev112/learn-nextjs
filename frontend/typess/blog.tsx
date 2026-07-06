@@ -1,3 +1,6 @@
+import { Author } from "./author";
+import { category } from "./categories";
+
 export interface Blog {
   id: number;
   title: string;
@@ -8,7 +11,10 @@ export interface Blog {
   published: boolean;
   category_id: number;
   author_id: number;
-  read_time_minutes: number;
   created_at: string;
   updated_at: string;
+  read_time_minutes: number;
+
+  category: category;
+  author: Author;
 }

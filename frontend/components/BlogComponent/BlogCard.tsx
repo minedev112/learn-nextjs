@@ -2,14 +2,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { Blog } from "@/typess/blog";
 import { Author } from "@/typess/author";
+import { category  } from "@/typess/categories";
 
 interface Props {
   blog: Blog;
   author?: Author;
+  categories?: category;
 }
 
-export default function BlogCard({ blog, author }: Props) {
+export default function BlogCard({ blog, author, categories }: Props) {
   return (
+    
+        <Link
+          href={`/blogs/${blog.id}`} className="block">
+      
     <div className="space-y-4">
       <Image
         src={blog.cover_image}
@@ -20,6 +26,10 @@ export default function BlogCard({ blog, author }: Props) {
       />
 
       <div>
+              <p className="inline-block bg-gray-800 text-white text-xs px-2 py-1 rounded">
+              {categories?.name}
+                  </p>
+       
         <p className="text-sm text-gray-500">
           {blog.read_time_minutes} min read
         </p>
@@ -32,8 +42,6 @@ export default function BlogCard({ blog, author }: Props) {
           {blog.excerpt}
         </p>
 
-        <Link
-          href={`/blogs/${blog.id}`}>
          
        <div className="flex items-center gap-3 mt-5">
   <Image
@@ -51,8 +59,9 @@ export default function BlogCard({ blog, author }: Props) {
     </p>
   </div>
 </div>
-        </Link>
+        
       </div>
     </div>
+    </Link>
   );
 }
