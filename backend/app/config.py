@@ -9,6 +9,11 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed CORS origins ("*" allows everything).
     cors_origins: str = "*"
 
+    # Directory where uploaded media is stored, and the public base URL used to
+    # build absolute links back to those files (served under /static/uploads).
+    upload_dir: str = "./static/uploads"
+    public_base_url: str = "http://localhost:8000"
+
     class Config:
         env_file = ".env"
 

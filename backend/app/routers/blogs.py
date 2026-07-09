@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from .. import crud, schemas
@@ -21,8 +21,9 @@ def _validate_relations(db: Session, category_id: int | None, author_id: int | N
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Author not found")
 
 
-@router.get("", response_model=list[schemas.BlogOut])
+@router.get("", response_model=list[schemas.BlogWithRelations])
 def list_blogs(
+    response: Response,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
     category_id: int | None = None,
@@ -31,6 +32,15 @@ def list_blogs(
     search: str | None = Query(None, description="Filter by title (case-insensitive)"),
     db: Session = Depends(get_db),
 ):
+    response.headers["X-Total-Count"] = str(
+        crud.count_blogs(
+            db,
+            category_id=category_id,
+            author_id=author_id,
+            published=published,
+            search=search,
+        )
+    )
     return crud.list_blogs(
         db,
         skip=skip,

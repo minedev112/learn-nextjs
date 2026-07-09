@@ -30,6 +30,7 @@ class CategoryOut(BaseModel):
     slug: str
     description: str | None
     created_at: datetime
+    post_count: int = 0
 
 
 # ---------- Author ----------
@@ -57,6 +58,7 @@ class AuthorOut(BaseModel):
     avatar_url: str | None
     bio: str | None
     created_at: datetime
+    post_count: int = 0
 
 
 # ---------- Blog ----------

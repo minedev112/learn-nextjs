@@ -15,9 +15,10 @@ class Category(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    blogs: Mapped[list["Blog"]] = relationship(
-        back_populates="category", cascade="all, delete-orphan"
-    )
+    # No delete-orphan cascade: deleting a category preserves its posts and
+    # nulls their category_id (matching the FK's ON DELETE SET NULL and the
+    # behaviour of Author.blogs), rather than deleting the posts.
+    blogs: Mapped[list["Blog"]] = relationship(back_populates="category")
 
 
 class Author(Base):
