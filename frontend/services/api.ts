@@ -4,15 +4,25 @@ import { category } from "@/typess/categories";
 
 const BASE_URL = "https://demo-blog.minebox.space/api";
 
-export async function getBlogs(limit = 2): Promise<Blog[]> {
-  const res = await fetch(
-    `${BASE_URL}/blogs?limit=${limit}`,
-    {
-      cache: "no-store",  
-    }
-  );
+export async function getBlogs(
+  search = "",
+  skip = 0,
+  limit = 6
+): Promise<Blog[]> {
+  const url = `${BASE_URL}/blogs?search=${search}&skip=${skip}&limit=${limit}`;
+
+  console.log("Fetching:", url);
+
+  const res = await fetch(url, {
+    cache: "no-store",
+  });
+
+  console.log("Status:", res.status);
 
   if (!res.ok) {
+    const text = await res.text();
+    console.log("Response:", text);
+
     throw new Error("Không thể lấy dữ liệu");
   }
 
@@ -66,3 +76,77 @@ export async function getBlogsId(id: number): Promise<Blog> {
 
   return res.json();
 }
+
+
+export async function createBlog(data: {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  cover_image: string;
+  published: boolean;
+  category_id: number;
+  author_id: number;
+}) {
+  const res = await fetch(`${BASE_URL}/blogs`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return res.json();
+}
+
+export async function updateBlog(
+  id: number,
+  data: {
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string;
+    cover_image: string;
+    published: boolean;
+    category_id: number;
+    author_id: number;
+  }
+) {
+  const res = await fetch(`${BASE_URL}/blogs/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return res.json();
+}
+
+
+export async function deleteBlog(id: number) {
+  const res = await fetch(`${BASE_URL}/blogs/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return true;
+}
+
+
+
+

@@ -18,7 +18,7 @@ export default function BlogCard({ blog, author, categories }: Props) {
       
     <div className="space-y-4">
       <Image
-        src={blog.cover_image}
+         src={blog.cover_image || "/images/default-blog.jpg"}
         alt={blog.title}
         width={600}
         height={400}

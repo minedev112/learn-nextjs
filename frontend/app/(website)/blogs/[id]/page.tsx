@@ -1,3 +1,9 @@
+
+//trang chi tiết bài viết
+
+
+
+
 import SmallBlogCard from "@/components/BlogComponent/SmallBlogCard";
 import { getBlogs, getBlogsId } from "@/services/api";
 import Image from "next/image";
@@ -11,7 +17,7 @@ export default async function Page({
   const { id } = await params;
 
   const blog = await getBlogsId(Number(id));
-  const blogs = await getBlogs(3);
+  const blogs = await getBlogs();
   const relatedBlogs = blogs.filter((b) => b.id !== blog.id);
 
   const paragraphs = blog.content.split("\n\n");

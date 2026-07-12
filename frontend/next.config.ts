@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
       },
       {
+         protocol: "https",
+        hostname: "i.pinimg.com",
+      },
+      {
         protocol: "https",
         hostname: "i.pravatar.cc",
       }
