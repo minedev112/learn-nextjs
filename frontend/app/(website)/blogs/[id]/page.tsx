@@ -56,35 +56,12 @@ export default async function Page({
     {blog.author.name}
   </p>
 </div>
-<div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div>
-<div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div>
+
 
  <div className="mt-10 space-y-6">
   {paragraphs.map((paragraph, index) => {
     const isHeading =
-      paragraph.startsWith("") ||
+      paragraph.startsWith("# ") ||
       paragraph.startsWith("") ||
       paragraph.startsWith("");
 
@@ -111,45 +88,9 @@ export default async function Page({
 
 
 
-<div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div><div className="mt-8 space-y-6 text-gray-700 leading-8">
-  <p>{blog.content}</p>
-</div>
 
     <div className="mt-10 space-y-6">
-  {paragraphs.map((paragraph, index) => {
-    const isHeading =
-      paragraph.startsWith("") ||
-      paragraph.startsWith("") ||
-      paragraph.startsWith("");
-
-    return isHeading ? (
-      <h2
-        key={index}
-        className="text-3xl font-bold mt-10"
-      >
-        {paragraph}
-      </h2>
-    ) : (
-      <p
-        key={index}
-        className="text-gray-700 leading-8 text-lg"
-      >
-        {paragraph}
-      </p>
-    );
-  })}
+  
   <h2 className="text-3xl font-bold mt-20 mb-8">
      Keep Reading
   </h2>

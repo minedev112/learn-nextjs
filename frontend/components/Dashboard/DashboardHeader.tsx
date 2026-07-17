@@ -7,6 +7,7 @@ interface DashboardHeaderProps {
   title: string;
   buttonText?: string;
   buttonHref?: string;
+  showSearch?: boolean;
 }
 
 export default function DashboardHeader({

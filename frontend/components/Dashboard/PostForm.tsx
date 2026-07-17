@@ -1,19 +1,21 @@
 "use client";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Author } from "@/typess/author";
 import { category } from "@/typess/categories";
-import { useState,useEffect } from "react";
-import { createBlog,updateBlog} from "@/services/api";
+import { useState, useEffect } from "react";
+import { createBlog, updateBlog } from "@/services/api";
 import { useRouter } from "next/navigation";
 import { Blog } from "@/typess/blog";
-interface PostFormProps {
-    authors: Author[];
-    categories: category[];
-     initialData?: Blog;
+import Image from "next/image";
 
-     mode: "create" | "edit";
+interface PostFormProps {
+  authors: Author[];
+  categories: category[];
+  initialData?: Blog;
+  mode: "create" | "edit";
 }
 
 const generateSlug = (text: string) => {
@@ -25,23 +27,23 @@ const generateSlug = (text: string) => {
 };
 
 export default function PostForm({
-    authors,
-    categories,
-    initialData,
-    mode,
+  authors,
+  categories,
+  initialData,
+  mode,
 }: PostFormProps) {
-    const [title, setTitle] = useState("");
-    const [slug, setSlug] = useState("");
-    const [excerpt, setExcerpt] = useState("");
-    const [content, setContent] = useState("");
-    const [coverImage, setCoverImage] = useState("");
+  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
+  const [coverImage, setCoverImage] = useState("");
 
-    const [categoryId, setCategoryId] = useState(0);
-    const [authorId, setAuthorId] = useState(0);
+  const [categoryId, setCategoryId] = useState(0);
+  const [authorId, setAuthorId] = useState(0);
 
-    const [published, setPublished] = useState(true);
+  const [published, setPublished] = useState(true);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!initialData) return;
 
     setTitle(initialData.title);
@@ -52,188 +54,268 @@ export default function PostForm({
     setCategoryId(initialData.category_id);
     setAuthorId(initialData.author_id);
     setPublished(initialData.published);
-}, [initialData]);
+  }, [initialData]);
 
-const router = useRouter();
-const handleSubmit = async (
-  e: React.FormEvent<HTMLFormElement>
-) => {
-  e.preventDefault();
+  const router = useRouter();
 
-  try {
-    const blogData = {
-      title,
-      slug,
-      excerpt,
-      content,
-      cover_image: coverImage || "/images/default-blog.jpg",
-      published,
-      category_id: categoryId,
-      author_id: authorId,
-    };
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
 
-    if (mode === "create") {
-      await createBlog(blogData);
-    } else {
-      await updateBlog(initialData!.id, blogData);
+    try {
+      const blogData = {
+        title,
+        slug,
+        excerpt,
+        content,
+        cover_image:
+          coverImage || "/images/default-blog.jpg",
+        published,
+        category_id: categoryId,
+        author_id: authorId,
+      };
+
+      if (mode === "create") {
+        await createBlog(blogData);
+      } else {
+        await updateBlog(initialData!.id, blogData);
+      }
+
+      alert(
+        mode === "create"
+          ? "Post created successfully!"
+          : "Post updated successfully!"
+      );
+
+      router.push("/dashboard/posts");
+    } catch (error) {
+      console.error(error);
+      alert("Có lỗi xảy ra!");
     }
+  };
 
-    alert(
-      mode === "create"
-        ? "Post created successfully!"
-        : "Post updated successfully!"
-    );
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="grid grid-cols-4 gap-8 mt-8"
+    >
+      {/* ================= LEFT ================= */}
 
-    router.push("/dashboard/posts");
-  } catch (error) {
-    console.error(error);
-    alert("Có lỗi xảy ra!");
-  }
-};
+      <div className="col-span-3 space-y-6">
 
+        {/* Title */}
 
-    return (
-        <form className="space-y-6  " onSubmit={handleSubmit}>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-gray-700">
+            Title
+          </label>
 
-            <div>
-                <label className="block mb-2 font-medium">
-                    Title
-                </label>
+          <Input
+            className="h-11"
+            value={title}
+            onChange={(e) => {
+              const value = e.target.value;
+              setTitle(value);
+              setSlug(generateSlug(value));
+            }}
+            placeholder="Enter title"
+          />
+        </div>
 
-                <Input
-                value={title}
-                onChange={(e) => {
-                    const value = e.target.value;
-                    setTitle(value);
-                    setSlug(generateSlug(value));
-    }}
-/>
-            </div>
+        {/* Slug */}
 
-            <div>
-                <label className="block mb-2 font-medium">
-                    Slug
-                </label>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-gray-700">
+            Slug
+          </label>
 
-                <Input
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="Enter slug"
-                />
-            </div>
+          <Input
+            className="h-11"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            placeholder="Enter slug"
+          />
+        </div>
 
-            <div>
-                <label className="block mb-2 font-medium">
-                    Excerpt
-                </label>
+        {/* Cover */}
 
-                <Input
-                    value={excerpt}
-                    onChange={(e) => setExcerpt(e.target.value)}
-                    placeholder="Enter excerpt"
-                />
-            </div>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-gray-700">
+            Cover Image URL
+          </label>
 
-            <div>
-                <label className="block mb-2 font-medium">
-                    Cover Image URL
-                </label>
+          <Input
+            className="h-11"
+            value={coverImage}
+            onChange={(e) =>
+              setCoverImage(e.target.value)
+            }
+            placeholder="https://..."
+          />
 
-                <Input
-                    value={coverImage}
-                    onChange={(e) => setCoverImage(e.target.value)}
-                    placeholder="https://..."
-                />
-            </div>
+          <div className="mt-4 overflow-hidden rounded-xl border bg-gray-50">
+            <Image
+              src={
+                coverImage ||
+                "/images/default-blog.jpg"
+              }
+              alt="Preview"
+              width={1200}
+              height={600}
+              className="h-64 w-full object-cover"
+            />
+          </div>
+        </div>
 
+        {/* Content */}
 
-            <div>
-                <label className="block mb-2 font-medium">
-                    Category
-                </label>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-gray-700">
+            Content
+          </label>
 
-                <select
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(Number(e.target.value))}
-                    className="w-full border rounded-md p-2"
-                >
-                    <option value={0}>
-                        Select category
-                    </option>
+          <Textarea
+            className="min-h-[300px]"
+            value={content}
+            onChange={(e) =>
+              setContent(e.target.value)
+            }
+          />
+        </div>
 
-                    {categories.map((category) => (
-                        <option
-                            key={category.id}
-                            value={category.id}
-                        >
-                            {category.name}
-                        </option>
-                    ))}
-                </select>
-            </div>
+        {/* Excerpt */}
 
-            <div>
-                <label className="block mb-2 font-medium">
-                    Author
-                </label>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-gray-700">
+            Excerpt
+          </label>
 
-                <select
-                    value={authorId}
-                    onChange={(e) => setAuthorId(Number(e.target.value))}
-                    className="w-full border rounded-md p-2"
-                >
-                    <option value={0}>
-                        Select author
-                    </option>
+          <Textarea
+            className="min-h-[120px]"
+            value={excerpt}
+            onChange={(e) =>
+              setExcerpt(e.target.value)
+            }
+            placeholder="Short description..."
+          />
+        </div>
+      </div>
 
-                    {authors.map((author) => (
-                        <option
-                            key={author.id}
-                            value={author.id}
-                        >
-                            {author.name}
-                        </option>
-                    ))}
-                </select>
-            </div>
+      {/* RIGHT */}
+      <div className="space-y-6">
 
-            <div className="flex items-center gap-2">
-                <input
-                    type="checkbox"
-                    checked={published}
-                    onChange={(e) => setPublished(e.target.checked)}
-                />
+        {/* Publish */}
 
-                <label>
-                    Published
-                </label>
-            </div>
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-semibold">
+            Publish
+          </h3>
 
-            <div>
-                <label className="block mb-2 font-medium">
-                    Content
-                </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={published}
+              onChange={(e) =>
+                setPublished(e.target.checked)
+              }
+              className="h-4 w-4"
+            />
 
-                <Textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    rows={12}
-                />
-            </div>
+            <span className="text-sm font-medium">
+              Published
+            </span>
+          </div>
+        </div>
 
-            <div className="flex justify-end gap-3">
-                <Button variant="outline" type="submit">
-                     {mode === "create" ? "Create Post" : "Update Post"}
-                </Button>
-<Button
-    type="button"
-    variant="outline"
-    onClick={() => router.push("/dashboard/posts")}
->
-    Cancel
-</Button>
-            </div>
+        {/* Category */}
 
-        </form>
-    );
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <label className="mb-3 block text-sm font-semibold text-gray-700">
+            Category
+          </label>
+
+          <select
+            value={categoryId}
+            onChange={(e) =>
+              setCategoryId(Number(e.target.value))
+            }
+            className="h-11 w-full rounded-md border px-3"
+          >
+            <option value={0}>
+              Select category
+            </option>
+
+            {categories.map((category) => (
+              <option
+                key={category.id}
+                value={category.id}
+              >
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Author */}
+
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <label className="mb-3 block text-sm font-semibold text-gray-700">
+            Author
+          </label>
+
+          <select
+            value={authorId}
+            onChange={(e) =>
+              setAuthorId(Number(e.target.value))
+            }
+            className="h-11 w-full rounded-md border px-3"
+          >
+            <option value={0}>
+              Select author
+            </option>
+
+            {authors.map((author) => (
+              <option
+                key={author.id}
+                value={author.id}
+              >
+                {author.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Actions */}
+
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-3">
+
+            <Button
+              type="submit"
+              className="w-full"
+            >
+              {mode === "create"
+                ? "Create Post"
+                : "Update Post"}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() =>
+                router.push("/dashboard/posts")
+              }
+            >
+              Cancel
+            </Button>
+
+          </div>
+        </div>
+
+      </div>
+
+    </form>
+  );
 }

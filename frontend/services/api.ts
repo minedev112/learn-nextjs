@@ -76,7 +76,8 @@ export async function getBlogsId(id: number): Promise<Blog> {
 
   return res.json();
 }
-
+/// api dashboard
+//create, update, delete blog
 
 export async function createBlog(data: {
   title: string;
@@ -148,5 +149,126 @@ export async function deleteBlog(id: number) {
 }
 
 
+// =========================
+// AUTHOR API
+// =========================
+
+export async function createAuthor(data: {
+  name: string;
+  avatar_url: string;
+  bio: string;
+}) {
+  const res = await fetch(`${BASE_URL}/authors`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+
+  return res.json();
+}
+
+export async function updateAuthor(
+  id: number,
+  data: {
+    name: string;
+    avatar_url: string;
+    bio: string;
+  }
+) {
+  const res = await fetch(`${BASE_URL}/authors/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+
+  return res.json();
+}
+
+export async function deleteAuthor(id: number) {
+  const res = await fetch(`${BASE_URL}/authors/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+
+  return true;
+}
+
+//category api
+///
+///
+export async function createCategory(data: {
+  name: string;
+  slug: string;
+  description: string;
+}) {
+  const res = await fetch(`${BASE_URL}/categories`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return res.json();
+}
+
+export async function updateCategory(
+  id: number,
+  data: {
+    name: string;
+    slug: string;
+    description: string;
+  }
+) 
+{
+  const res = await fetch(`${BASE_URL}/categories/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return res.json();
+}
+
+
+export async function deleteCategory(id: number) {
+  const res = await fetch(`${BASE_URL}/categories/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return true;
+}
 
 

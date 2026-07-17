@@ -20,8 +20,16 @@ export default async function EditPostPage({
 
     console.log( blog);
  return (
-  <div className="bg-white rounded-xl shadow p-8">
-    <DashboardHeader title="Edit Post" />
+  <div className="bg-white rounded-xl shadow p-8 mb-8">
+    {/* <DashboardHeader title="Edit Post" /> */}
+    
+  <h1 className="text-4xl font-bold">
+    Edit Post
+  </h1>
+
+  <p className="mt-2 text-gray-500">
+    Manage all your blog articles
+  </p>
 
     <PostForm
       authors={authors}
