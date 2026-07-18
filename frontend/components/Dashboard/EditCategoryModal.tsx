@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { category } from "@/typess/categories";
 import { updateCategory } from "@/services/api";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface EditCategoryModalProps {
   category: category;
@@ -32,8 +39,6 @@ export default function EditCategoryModal({
     setDescription(category.description || "");
   }, [category]);
 
-  if (!open) return null;
-
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -48,8 +53,6 @@ export default function EditCategoryModal({
         description,
       });
 
-      alert("Category updated successfully!");
-
       onClose();
 
       window.location.reload();
@@ -62,32 +65,26 @@ export default function EditCategoryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div className="relative z-10 w-full max-w-md rounded-xl bg-white shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <h2 className="text-sm font-semibold">
-            Edit category
-          </h2>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-400 transition hover:text-gray-700"
-          >
-            <X size={16} />
-          </button>
-        </div>
+    
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        if (!value) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+           
+              Edit category
+            
+          </DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-5 p-5">
+          <div className="space-y-5 py-4">
             {/* Name */}
             <div>
               <label className="mb-2 block text-xs font-medium">
@@ -120,7 +117,7 @@ export default function EditCategoryModal({
 
             {/* Description */}
             <div>
-              <label className="mb-2 block text-xs font-medium">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 Description
               </label>
 
@@ -129,13 +126,12 @@ export default function EditCategoryModal({
                 onChange={(e) =>
                   setDescription(e.target.value)
                 }
-                className="min-h-[80px]"
+               className="min-h-[140px] text-base"
               />
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex justify-end gap-2 border-t bg-gray-50 px-5 py-4">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -152,9 +148,10 @@ export default function EditCategoryModal({
                 ? "Saving..."
                 : "Save changes"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
+    
   );
 }

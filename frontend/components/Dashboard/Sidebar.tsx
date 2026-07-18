@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
@@ -8,63 +11,86 @@ import {
 } from "lucide-react";
 
 export default function Sidebar() {
+  const pathname = usePathname();
+
+  const menuItems = [
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Posts",
+      href: "/dashboard/posts",
+      icon: FileText,
+    },
+    {
+      label: "Authors",
+      href: "/dashboard/authors",
+      icon: Users,
+    },
+    {
+      label: "Categories",
+      href: "/dashboard/categories",
+      icon: FolderOpen,
+    },
+  ];
+
   return (
-    <aside className="w-64 min-h-screen bg-[#25345b] text-white flex flex-col">
+    <aside className="flex min-h-screen w-[240px] flex-col bg-[#283A61] text-white">
       {/* Logo */}
-      <div className="px-6 py-8 border-b border-white/10">
-        <h1 className="text-xl font-bold">
+      <div className="border-b border-white/10 px-4 py-6">
+        <h1 className="text-base font-bold">
           Simple NextJS Blog
         </h1>
       </div>
 
       {/* Menu */}
-      <div className="px-6 mt-8">
-        <p className="text-xs uppercase text-gray-400 mb-4 tracking-wider">
+      <div className="mt-7 px-4">
+        <p className="mb-4 text-[10px] uppercase tracking-wider text-gray-400">
           Manage
         </p>
 
         <nav className="space-y-2">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-white/10 transition"
-          >
-            <LayoutDashboard size={18} />
-            Dashboard
-          </Link>
+          {menuItems.map((item) => {
+            const Icon = item.icon;
 
-          <Link
-            href="/dashboard/posts"
-            className="flex items-center gap-3 px-4 py-2 rounded-lg bg-[#33497d]"
-          >
-            <FileText size={18} />
-            Posts
-          </Link>
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
 
-          <Link
-            href="/dashboard/authors"
-            className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-white/10 transition"
-          >
-            <Users size={18} />
-            Authors
-          </Link>
-
-          <Link
-            href="/dashboard/categories"
-            className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-white/10 transition"
-          >
-            <FolderOpen size={18} />
-            Categories
-          </Link>
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
+                  isActive
+                    ? "bg-[#4669A8]"
+                    : "hover:bg-white/10"
+                }`}
+              >
+                <Icon size={16} />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
       {/* Footer */}
-      <div className="mt-auto border-t border-white/10 p-6">
+      <div className="mt-auto border-t border-white/10 p-4">
         <div className="flex items-center gap-3">
-          <UserCircle size={36} />
+          <UserCircle size={32} />
+
           <div>
-            <p className="font-medium">Admin User</p>
-            <p className="text-xs text-gray-400">Editor</p>
+            <p className="text-sm font-medium">
+              Admin User
+            </p>
+
+            <p className="text-[10px] text-gray-400">
+              Editor
+            </p>
           </div>
         </div>
       </div>

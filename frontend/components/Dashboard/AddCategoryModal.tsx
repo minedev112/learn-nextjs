@@ -1,10 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 import { createCategory } from "@/services/api";
 
 interface AddCategoryModalProps {
@@ -21,8 +31,6 @@ export default function AddCategoryModal({
   const [description, setDescription] = useState("");
 
   const [loading, setLoading] = useState(false);
-
-  if (!open) return null;
 
   const generateSlug = (value: string) => {
     return value
@@ -51,8 +59,6 @@ export default function AddCategoryModal({
         description,
       });
 
-      alert("Category created successfully!");
-
       setName("");
       setSlug("");
       setDescription("");
@@ -69,91 +75,86 @@ export default function AddCategoryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div className="relative z-10 w-full max-w-md rounded-xl bg-white shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <h2 className="text-sm font-semibold">
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        if (!value) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
             Add category
-          </h2>
+          </DialogTitle>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-400 transition hover:text-gray-700"
-          >
-            <X size={16} />
-          </button>
-        </div>
+          <DialogDescription>
+            Create a new category to organize your posts.
+          </DialogDescription>
+        </DialogHeader>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-5 p-5">
-            {/* Name */}
-            <div>
-              <label className="mb-2 block text-xs font-medium">
-                Name
-              </label>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
+          {/* Name */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Name
+            </label>
 
-              <Input
-                placeholder="e.g. Travel"
-                value={name}
-                onChange={(e) => {
-                  const value = e.target.value;
+            <Input
+              placeholder="e.g. Travel"
+              value={name}
+              onChange={(e) => {
+                const value = e.target.value;
 
-                  setName(value);
-                  setSlug(generateSlug(value));
-                }}
-                required
-              />
-            </div>
+                setName(value);
+                setSlug(generateSlug(value));
+              }}
+              required
+            />
+          </div>
 
-            {/* Slug */}
-            <div>
-              <label className="mb-2 block text-xs font-medium">
-                Slug
-              </label>
+          {/* Slug */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Slug
+            </label>
 
-              <Input
-                placeholder="/travel"
-                value={slug}
-                onChange={(e) =>
-                  setSlug(e.target.value)
-                }
-                required
-              />
+            <Input
+              placeholder="travel"
+              value={slug}
+              onChange={(e) =>
+                setSlug(e.target.value)
+              }
+              required
+            />
 
-              <p className="mt-1 text-[10px] text-gray-400">
-                Auto-generated from name · edit to customize
-              </p>
-            </div>
+            <p className="mt-1 text-xs text-gray-400">
+              Auto-generated from name · edit to customize
+            </p>
+          </div>
 
-            {/* Description */}
-            <div>
-              <label className="mb-2 block text-xs font-medium">
-                Description
-              </label>
+          {/* Description */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Description
+            </label>
 
-              <Textarea
-                placeholder="What is this category about?"
-                value={description}
-                onChange={(e) =>
-                  setDescription(e.target.value)
-                }
-                className="min-h-[80px]"
-              />
-            </div>
+            <Textarea
+              placeholder="What is this category about?"
+              value={description}
+              onChange={(e) =>
+                setDescription(e.target.value)
+              }
+              className="min-h-[100px]"
+            />
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-2 border-t bg-gray-50 px-5 py-4">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -170,9 +171,9 @@ export default function AddCategoryModal({
                 ? "Saving..."
                 : "Save category"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

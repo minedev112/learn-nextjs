@@ -20,7 +20,10 @@ export default function AuthorCard({
     <div className="rounded-xl border bg-white p-5 shadow-sm">
       <div className="flex items-center gap-4">
         <Image
-          src="/images/author/default-author.png"
+        src={
+          author.avatar_url ||
+          "/images/author/default-author.png"
+        }
           alt={author.name}
           width={56}
           height={56}

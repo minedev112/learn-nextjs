@@ -10,7 +10,7 @@ import { createBlog, updateBlog } from "@/services/api";
 import { useRouter } from "next/navigation";
 import { Blog } from "@/typess/blog";
 import Image from "next/image";
-
+import { toast } from "sonner";
 interface PostFormProps {
   authors: Author[];
   categories: category[];
@@ -37,7 +37,8 @@ export default function PostForm({
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState("");
-
+  const [uploadingImage, setUploadingImage] =
+  useState(false);
   const [categoryId, setCategoryId] = useState(0);
   const [authorId, setAuthorId] = useState(0);
 
@@ -57,6 +58,55 @@ export default function PostForm({
   }, [initialData]);
 
   const router = useRouter();
+
+
+const handleImageUpload = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  try {
+    setUploadingImage(true);
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+    );
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error?.message || "Upload image failed"
+      );
+    }
+
+    setCoverImage(data.secure_url);
+
+    toast.success("Image uploaded successfully!");
+  } catch (error) {
+    console.error(error);
+    toast.error("Upload ảnh thất bại!");
+  } finally {
+    setUploadingImage(false);
+  }
+};
+
+
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
@@ -82,16 +132,16 @@ export default function PostForm({
         await updateBlog(initialData!.id, blogData);
       }
 
-      alert(
-        mode === "create"
-          ? "Post created successfully!"
-          : "Post updated successfully!"
-      );
+      toast.success(
+          mode === "create"
+            ? "Post created successfully!"
+            : "Post updated successfully!"
+        );
 
       router.push("/dashboard/posts");
     } catch (error) {
       console.error(error);
-      alert("Có lỗi xảy ra!");
+      toast.error("Có lỗi xảy ra!");
     }
   };
 
@@ -145,14 +195,18 @@ export default function PostForm({
             Cover Image URL
           </label>
 
-          <Input
-            className="h-11"
-            value={coverImage}
-            onChange={(e) =>
-              setCoverImage(e.target.value)
-            }
-            placeholder="https://..."
-          />
+                <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+              />
+
+              {uploadingImage && (
+                <p className="mt-2 text-sm text-gray-500">
+                  Uploading image...
+                </p>
+              )}
 
           <div className="mt-4 overflow-hidden rounded-xl border bg-gray-50">
             <Image
@@ -176,7 +230,7 @@ export default function PostForm({
           </label>
 
           <Textarea
-            className="min-h-[300px]"
+            className="min-h-75"
             value={content}
             onChange={(e) =>
               setContent(e.target.value)
@@ -192,7 +246,7 @@ export default function PostForm({
           </label>
 
           <Textarea
-            className="min-h-[120px]"
+            className="min-h-30"
             value={excerpt}
             onChange={(e) =>
               setExcerpt(e.target.value)
@@ -291,15 +345,15 @@ export default function PostForm({
         <div className="rounded-xl border bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3">
 
-            <Button
-              type="submit"
-              className="w-full"
-            >
-              {mode === "create"
-                ? "Create Post"
-                : "Update Post"}
-            </Button>
-
+        <Button
+        type="submit"
+        className="w-full"
+        disabled={uploadingImage}
+      >
+        {mode === "create"
+          ? "Create Post"
+          : "Update Post"}
+      </Button>
             <Button
               type="button"
               variant="outline"

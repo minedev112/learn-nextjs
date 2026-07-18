@@ -9,6 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 interface EditAuthorModalProps {
   author: Author;
   open: boolean;
@@ -25,7 +34,11 @@ export default function EditAuthorModal({
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [bio, setBio] = useState("");
+
   const [loading, setLoading] = useState(false);
+
+  const [uploadingImage, setUploadingImage] =
+    useState(false);
 
   useEffect(() => {
     if (!author) return;
@@ -35,7 +48,51 @@ export default function EditAuthorModal({
     setBio(author.bio || "");
   }, [author]);
 
-  if (!open) return null;
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    try {
+      setUploadingImage(true);
+
+      const formData = new FormData();
+
+      formData.append("file", file);
+
+      formData.append(
+        "upload_preset",
+        process.env
+          .NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+      );
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error?.message ||
+            "Upload image failed"
+        );
+      }
+
+      setAvatarUrl(data.secure_url);
+    } catch (error) {
+      console.error(error);
+      alert("Upload ảnh thất bại!");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
@@ -51,43 +108,42 @@ export default function EditAuthorModal({
         bio,
       });
 
-      alert("Author updated successfully!");
-
       onClose();
 
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert("Có lỗi xảy ra!");
+      alert("Có lỗi xảy ra khi cập nhật author!");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold">
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        if (!value) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
             Edit Author
-          </h2>
+          </DialogTitle>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-500 hover:text-black"
-          >
-            ✕
-          </button>
-        </div>
+          <DialogDescription>
+            Update author information.
+          </DialogDescription>
+        </DialogHeader>
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4"
+          className="space-y-5"
         >
-
+          {/* Name */}
           <div>
             <label className="mb-2 block text-sm font-medium">
               Name
@@ -102,36 +158,53 @@ export default function EditAuthorModal({
             />
           </div>
 
+          {/* Avatar */}
           <div>
             <label className="mb-2 block text-sm font-medium">
-              Avatar URL
+              Avatar
             </label>
 
             <Input
-              value={avatarUrl}
-              onChange={(e) =>
-                setAvatarUrl(e.target.value)
-              }
-              placeholder="https://..."
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={uploadingImage}
             />
+
+            {uploadingImage && (
+              <p className="mt-2 text-sm text-gray-500">
+                Uploading image...
+              </p>
+            )}
+
+            {avatarUrl && (
+              <div className="mt-3">
+                <img
+                  src={avatarUrl}
+                  alt="Avatar preview"
+                  className="h-20 w-20 rounded-full object-cover border"
+                />
+              </div>
+            )}
           </div>
 
+          {/* Bio */}
           <div>
             <label className="mb-2 block text-sm font-medium">
               Bio
             </label>
 
             <Textarea
-              rows={5}
               value={bio}
               onChange={(e) =>
                 setBio(e.target.value)
               }
+              placeholder="A short bio..."
+              className="min-h-[100px]"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -142,19 +215,17 @@ export default function EditAuthorModal({
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading || uploadingImage
+              }
             >
               {loading
                 ? "Saving..."
                 : "Save Changes"}
             </Button>
-
-          </div>
-
+          </DialogFooter>
         </form>
-
-      </div>
-
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

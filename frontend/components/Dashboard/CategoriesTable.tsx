@@ -4,8 +4,20 @@ import { useState } from "react";
 import { category } from "@/typess/categories";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
+
 import EditCategoryModal from "./EditCategoryModal";
 import { deleteCategory } from "@/services/api";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CategoriesTableProps {
   categories: category[];
@@ -17,22 +29,21 @@ export default function CategoriesTable({
   const [editCategory, setEditCategory] =
     useState<category | null>(null);
 
+  const [deleteCategoryId, setDeleteCategoryId] =
+    useState<number | null>(null);
+
   const [deletingId, setDeletingId] =
     useState<number | null>(null);
 
-  const handleDelete = async (id: number) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this category?"
-    );
-
-    if (!confirmed) return;
+  const handleDelete = async () => {
+    if (deleteCategoryId === null) return;
 
     try {
-      setDeletingId(id);
+      setDeletingId(deleteCategoryId);
 
-      await deleteCategory(id);
+      await deleteCategory(deleteCategoryId);
 
-      alert("Category deleted successfully!");
+      setDeleteCategoryId(null);
 
       window.location.reload();
     } catch (error) {
@@ -77,7 +88,6 @@ export default function CategoriesTable({
                 key={category.id}
                 className="transition-colors hover:bg-gray-50"
               >
-                {/* Name */}
                 <td className="px-5 py-5">
                   <div className="flex items-center gap-3">
                     <span className="h-2.5 w-2.5 rounded-sm bg-blue-500" />
@@ -88,26 +98,23 @@ export default function CategoriesTable({
                   </div>
                 </td>
 
-                {/* Slug */}
                 <td className="px-5 py-5 text-sm text-gray-500">
                   /{category.slug}
                 </td>
 
-                {/* Description */}
                 <td className="px-5 py-5 text-sm text-gray-400">
                   <span className="block truncate">
                     {category.description || "No description"}
                   </span>
                 </td>
 
-                {/* Posts */}
                 <td className="px-5 py-5 text-sm font-medium text-gray-700">
                   -
                 </td>
 
-                {/* Actions */}
                 <td className="px-5 py-5">
                   <div className="flex justify-end gap-2">
+                    {/* Edit */}
                     <Button
                       variant="outline"
                       size="icon"
@@ -122,13 +129,13 @@ export default function CategoriesTable({
                       />
                     </Button>
 
+                    {/* Delete */}
                     <Button
                       variant="outline"
                       size="icon"
                       className="h-8 w-8"
-                      disabled={deletingId === category.id}
                       onClick={() =>
-                        handleDelete(category.id)
+                        setDeleteCategoryId(category.id)
                       }
                     >
                       <Trash2
@@ -144,7 +151,7 @@ export default function CategoriesTable({
         </table>
       </div>
 
-      {/* Edit Modal */}
+      {/* Edit Dialog */}
       {editCategory && (
         <EditCategoryModal
           category={editCategory}
@@ -152,6 +159,44 @@ export default function CategoriesTable({
           onClose={() => setEditCategory(null)}
         />
       )}
+
+      {/* Delete Alert Dialog */}
+      <AlertDialog
+        open={deleteCategoryId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteCategoryId(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete category?
+            </AlertDialogTitle>
+
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently
+              delete the category.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deletingId !== null}
+            >
+              {deletingId !== null
+                ? "Deleting..."
+                : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

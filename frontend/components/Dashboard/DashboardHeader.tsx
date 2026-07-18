@@ -42,15 +42,16 @@ export default function DashboardHeader({
           />
         </div>
 
-        {buttonText && buttonHref && (
+       {buttonText && buttonHref && (
           <Link href={buttonHref}>
-            <Button>
+            <Button
+              className="h-[38px] w-[118px] rounded-lg px-4 py-2.5"
+            >
               <Plus size={16} />
               {buttonText}
             </Button>
           </Link>
         )}
-
         <UserCircle
           size={34}
           className="text-gray-500"
