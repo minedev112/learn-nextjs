@@ -1,13 +1,18 @@
 # Blog / CMS API
 
 A simple FastAPI backend for a blog / CMS, built for frontend interns to practice
-API integration. **No authentication** — every endpoint is open.
+API integration. **Reads are public; writes require login** — the management
+dashboard authenticates with a JWT (see [Authentication](#authentication)).
 
 ## Features
 
+- JWT login: reads are public, writes require a Bearer token
 - Blogs, Categories and Authors with full CRUD
 - Blogs carry cover image, excerpt (auto-derived), author and computed read-time
 - List & filter blogs (by category, author, published state, title search) with pagination
+- List responses expose the total via an `X-Total-Count` header
+- Authors & categories report a `post_count`; `GET /api/blogs` embeds each blog's category & author
+- Image upload endpoint for cover images / avatars
 - List blogs within a category or by an author
 - Auto-generated URL slugs
 - PostgreSQL storage/ Hellos
@@ -53,6 +58,36 @@ uvicorn app.main:app --reload
 
 ---
 
+## Authentication
+
+Reading (`GET`) is open to everyone. Creating, updating, or deleting blogs,
+categories and authors — and uploading images — requires a **Bearer token**.
+
+Get a token by logging in with the admin account (seeded on first boot from the
+`ADMIN_USERNAME` / `ADMIN_PASSWORD` env vars, defaults `admin` / `changeme`):
+
+| Method | Path              | Description                                   |
+|--------|-------------------|-----------------------------------------------|
+| POST   | `/api/auth/login` | Exchange `{username, password}` for a token   |
+| GET    | `/api/auth/me`    | Return the current user (requires the token)  |
+
+```bash
+# 1. Log in -> { "access_token": "...", "token_type": "bearer" }
+TOKEN=$(curl -s -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "changeme"}' | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+
+# 2. Use it on any write endpoint
+curl -X POST http://localhost:8000/api/categories \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Lifestyle"}'
+```
+
+Tokens are stateless JWTs that expire after `JWT_EXPIRE_MINUTES` (default 24h).
+Set a strong `JWT_SECRET` and change `ADMIN_PASSWORD` before deploying. In Swagger
+(`/docs`), click **Authorize** and paste the token to try protected endpoints.
+
 ## API reference
 
 Base path: `/api`
@@ -83,7 +118,7 @@ Base path: `/api`
 
 | Method | Path                | Description                                       |
 |--------|---------------------|---------------------------------------------------|
-| GET    | `/api/blogs`        | List blogs                                        |
+| GET    | `/api/blogs`        | List blogs (embeds category & author; total in `X-Total-Count`) |
 | POST   | `/api/blogs`        | Create a blog                                     |
 | GET    | `/api/blogs/{id}`   | Get one blog (includes its category & author)     |
 | PUT    | `/api/blogs/{id}`   | Update a blog                                     |
@@ -91,6 +126,24 @@ Base path: `/api`
 
 **Query params on `GET /api/blogs`:**
 `skip`, `limit`, `category_id`, `author_id`, `published` (true/false), `search` (title match).
+
+All three list endpoints (`/api/blogs`, `/api/authors`, `/api/categories`) return the total
+number of matching rows in an **`X-Total-Count`** response header (respecting any filters), for
+building pagination.
+
+### Media
+
+| Method | Path            | Description                                        |
+|--------|-----------------|----------------------------------------------------|
+| POST   | `/api/uploads`  | Upload an image (multipart `file`); returns a URL  |
+
+Accepts JPEG/PNG/WebP/GIF up to 5 MB. Files are stored in `UPLOAD_DIR` and served at
+`/static/uploads/<name>`; the response is `{"url": "...", "filename": "..."}`. Use the returned
+`url` as a blog `cover_image` or an author `avatar_url`.
+
+> Uploads are written to local disk — fine for development, but they won't persist across
+> container redeploys. For production, point the upload step at object storage (S3/R2); the
+> endpoint's response contract stays the same.
 
 ### Examples
 
@@ -119,8 +172,8 @@ computed from the content (~200 words/min) and returned on every blog.
 
 ## Data models
 
-**Category:** `id`, `name`, `slug`, `description`, `created_at`
-**Author:** `id`, `name`, `avatar_url`, `bio`, `created_at`
+**Category:** `id`, `name`, `slug`, `description`, `created_at`, `post_count` (computed)
+**Author:** `id`, `name`, `avatar_url`, `bio`, `created_at`, `post_count` (computed)
 **Blog:** `id`, `title`, `slug`, `excerpt`, `content`, `cover_image`, `published`,
 `category_id`, `author_id`, `read_time_minutes` (computed), `created_at`, `updated_at`.
 `GET /api/blogs/{id}` (and create/update responses) also embed the full `category`
