@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from .. import crud, schemas
 from ..database import get_db
+from ..deps import require_auth
 
 router = APIRouter(prefix="/authors", tags=["authors"])
 
@@ -29,7 +30,12 @@ def list_authors(
     return authors
 
 
-@router.post("", response_model=schemas.AuthorOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=schemas.AuthorOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[require_auth],
+)
 def create_author(data: schemas.AuthorCreate, db: Session = Depends(get_db)):
     return crud.create_author(db, data)
 
@@ -53,7 +59,7 @@ def list_author_blogs(
     return crud.list_blogs(db, skip=skip, limit=limit, author_id=author_id, published=published)
 
 
-@router.put("/{author_id}", response_model=schemas.AuthorOut)
+@router.put("/{author_id}", response_model=schemas.AuthorOut, dependencies=[require_auth])
 def update_author(author_id: int, data: schemas.AuthorUpdate, db: Session = Depends(get_db)):
     author = _get_or_404(db, author_id)
     author = crud.update_author(db, author, data)
@@ -61,7 +67,11 @@ def update_author(author_id: int, data: schemas.AuthorUpdate, db: Session = Depe
     return author
 
 
-@router.delete("/{author_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{author_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[require_auth],
+)
 def delete_author(author_id: int, db: Session = Depends(get_db)):
     author = _get_or_404(db, author_id)
     crud.delete_author(db, author)

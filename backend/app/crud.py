@@ -2,7 +2,21 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from . import models, schemas
+from .security import hash_password
 from .utils import slugify
+
+
+# ---------- User ----------
+def get_user_by_username(db: Session, username: str) -> models.User | None:
+    return db.scalar(select(models.User).where(models.User.username == username))
+
+
+def create_user(db: Session, username: str, password: str) -> models.User:
+    user = models.User(username=username, password_hash=hash_password(password))
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 def _unique_slug(db: Session, model, base: str, exclude_id: int | None = None) -> str:

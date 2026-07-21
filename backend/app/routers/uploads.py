@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from ..config import settings
+from ..deps import require_auth
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
@@ -17,7 +18,7 @@ ALLOWED_TYPES = {
 MAX_BYTES = 5 * 1024 * 1024  # 5 MB
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED, dependencies=[require_auth])
 async def upload_file(file: UploadFile = File(...)):
     """Store an uploaded image and return a public URL for it.
 

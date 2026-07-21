@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from .. import crud, schemas
 from ..database import get_db
+from ..deps import require_auth
 
 router = APIRouter(prefix="/blogs", tags=["blogs"])
 
@@ -52,7 +53,12 @@ def list_blogs(
     )
 
 
-@router.post("", response_model=schemas.BlogWithRelations, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=schemas.BlogWithRelations,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[require_auth],
+)
 def create_blog(data: schemas.BlogCreate, db: Session = Depends(get_db)):
     _validate_relations(db, data.category_id, data.author_id)
     return crud.create_blog(db, data)
@@ -63,14 +69,18 @@ def get_blog(blog_id: int, db: Session = Depends(get_db)):
     return _get_or_404(db, blog_id)
 
 
-@router.put("/{blog_id}", response_model=schemas.BlogWithRelations)
+@router.put(
+    "/{blog_id}", response_model=schemas.BlogWithRelations, dependencies=[require_auth]
+)
 def update_blog(blog_id: int, data: schemas.BlogUpdate, db: Session = Depends(get_db)):
     blog = _get_or_404(db, blog_id)
     _validate_relations(db, data.category_id, data.author_id)
     return crud.update_blog(db, blog, data)
 
 
-@router.delete("/{blog_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{blog_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[require_auth]
+)
 def delete_blog(blog_id: int, db: Session = Depends(get_db)):
     blog = _get_or_404(db, blog_id)
     crud.delete_blog(db, blog)

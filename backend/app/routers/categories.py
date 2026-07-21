@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from .. import crud, schemas
 from ..database import get_db
+from ..deps import require_auth
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -29,7 +30,12 @@ def list_categories(
     return categories
 
 
-@router.post("", response_model=schemas.CategoryOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=schemas.CategoryOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[require_auth],
+)
 def create_category(data: schemas.CategoryCreate, db: Session = Depends(get_db)):
     return crud.create_category(db, data)
 
@@ -53,7 +59,7 @@ def list_category_blogs(
     return crud.list_blogs(db, skip=skip, limit=limit, category_id=category_id, published=published)
 
 
-@router.put("/{category_id}", response_model=schemas.CategoryOut)
+@router.put("/{category_id}", response_model=schemas.CategoryOut, dependencies=[require_auth])
 def update_category(
     category_id: int, data: schemas.CategoryUpdate, db: Session = Depends(get_db)
 ):
@@ -63,7 +69,11 @@ def update_category(
     return category
 
 
-@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{category_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[require_auth],
+)
 def delete_category(category_id: int, db: Session = Depends(get_db)):
     category = _get_or_404(db, category_id)
     crud.delete_category(db, category)

@@ -1,10 +1,12 @@
 # Blog / CMS API
 
 A simple FastAPI backend for a blog / CMS, built for frontend interns to practice
-API integration. **No authentication** — every endpoint is open.
+API integration. **Reads are public; writes require login** — the management
+dashboard authenticates with a JWT (see [Authentication](#authentication)).
 
 ## Features
 
+- JWT login: reads are public, writes require a Bearer token
 - Blogs, Categories and Authors with full CRUD
 - Blogs carry cover image, excerpt (auto-derived), author and computed read-time
 - List & filter blogs (by category, author, published state, title search) with pagination
@@ -55,6 +57,36 @@ uvicorn app.main:app --reload
 > Tip: to spin up just Postgres via Docker, run `docker compose up db`.
 
 ---
+
+## Authentication
+
+Reading (`GET`) is open to everyone. Creating, updating, or deleting blogs,
+categories and authors — and uploading images — requires a **Bearer token**.
+
+Get a token by logging in with the admin account (seeded on first boot from the
+`ADMIN_USERNAME` / `ADMIN_PASSWORD` env vars, defaults `admin` / `changeme`):
+
+| Method | Path              | Description                                   |
+|--------|-------------------|-----------------------------------------------|
+| POST   | `/api/auth/login` | Exchange `{username, password}` for a token   |
+| GET    | `/api/auth/me`    | Return the current user (requires the token)  |
+
+```bash
+# 1. Log in -> { "access_token": "...", "token_type": "bearer" }
+TOKEN=$(curl -s -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "changeme"}' | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+
+# 2. Use it on any write endpoint
+curl -X POST http://localhost:8000/api/categories \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Lifestyle"}'
+```
+
+Tokens are stateless JWTs that expire after `JWT_EXPIRE_MINUTES` (default 24h).
+Set a strong `JWT_SECRET` and change `ADMIN_PASSWORD` before deploying. In Swagger
+(`/docs`), click **Authorize** and paste the token to try protected endpoints.
 
 ## API reference
 

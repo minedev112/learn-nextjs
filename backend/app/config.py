@@ -14,6 +14,14 @@ class Settings(BaseSettings):
     upload_dir: str = "./static/uploads"
     public_base_url: str = "http://localhost:8000"
 
+    # Auth: HMAC key that signs JWT access tokens (CHANGE in production) and how
+    # long an issued token stays valid. The admin_* pair seeds the single admin
+    # user on first boot — used only when the users table is empty.
+    jwt_secret: str = "dev-insecure-change-me"
+    jwt_expire_minutes: int = 60 * 24  # 24 hours
+    admin_username: str = "admin"
+    admin_password: str = "changeme"
+
     class Config:
         env_file = ".env"
 

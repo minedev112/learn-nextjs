@@ -5,6 +5,25 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 
+# ---------- Auth ----------
+class LoginRequest(BaseModel):
+    username: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1)
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    username: str
+    created_at: datetime
+
+
 # ---------- Category ----------
 class CategoryBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
