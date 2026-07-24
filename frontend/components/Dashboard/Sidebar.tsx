@@ -1,17 +1,48 @@
 "use client";
-
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "@/services/api";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
+
 import {
   LayoutDashboard,
   FileText,
   Users,
   FolderOpen,
   UserCircle,
+  LogOut,
 } from "lucide-react";
+
+import { logout } from "@/lib/auth";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<{
+  username: string;
+  role?: string;
+} | null>(null);
+
+
+
+useEffect(() => {
+  async function fetchUser() {
+    try {
+      const data = await getCurrentUser();
+      console.log("Current user:", data);
+      setUser(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  fetchUser();
+}, []);
+function handleLogout() {
+  logout();
+  router.replace("/login");
+}
 
   const menuItems = [
     {
@@ -83,17 +114,27 @@ export default function Sidebar() {
         <div className="flex items-center gap-3">
           <UserCircle size={32} />
 
-          <div>
-            <p className="text-sm font-medium">
-              Admin User
-            </p>
+              <div>
+                    <p className="text-sm font-medium">
+            {user?.username ?? "Loading..."}
+          </p>
 
-            <p className="text-[10px] text-gray-400">
-              Editor
-            </p>
+          <p className="text-[10px] text-gray-400">
+            {user?.role ?? "Editor"}
+          </p>
           </div>
         </div>
+              <button
+        onClick={handleLogout}
+        className="mt-4 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition"
+      >
+        <LogOut size={16} />
+        Logout
+      </button>
+
       </div>
+
+          
     </aside>
   );
 }

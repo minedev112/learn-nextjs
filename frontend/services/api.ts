@@ -2,6 +2,7 @@ import { Author } from "@/typess/author";
 import { Blog } from "@/typess/blog";
 import { category } from "@/typess/categories";
 
+import { apiFetch } from "@/lib/api";
 const BASE_URL = "https://demo-blog.minebox.space/api";
 
 export async function getBlogs(
@@ -89,13 +90,10 @@ export async function createBlog(data: {
   category_id: number;
   author_id: number;
 }) {
-  const res = await fetch(`${BASE_URL}/blogs`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+const res = await apiFetch("/blogs", {
+  method: "POST",
+  body: JSON.stringify(data),
+});
 
   if (!res.ok) {
     const error = await res.text();
@@ -118,13 +116,10 @@ export async function updateBlog(
     author_id: number;
   }
 ) {
-  const res = await fetch(`${BASE_URL}/blogs/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+ const res = await apiFetch(`/blogs/${id}`, {
+  method: "PUT",
+  body: JSON.stringify(data),
+});
 
   if (!res.ok) {
     const error = await res.text();
@@ -136,9 +131,9 @@ export async function updateBlog(
 
 
 export async function deleteBlog(id: number) {
-  const res = await fetch(`${BASE_URL}/blogs/${id}`, {
-    method: "DELETE",
-  });
+ const res = await apiFetch(`/blogs/${id}`, {
+  method: "DELETE",
+});
 
   if (!res.ok) {
     const error = await res.text();
@@ -158,13 +153,10 @@ export async function createAuthor(data: {
   avatar_url: string;
   bio: string;
 }) {
-  const res = await fetch(`${BASE_URL}/authors`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+ const res = await apiFetch("/authors", {
+  method: "POST",
+  body: JSON.stringify(data),
+});
 
   if (!res.ok) {
     throw new Error(await res.text());
@@ -181,13 +173,10 @@ export async function updateAuthor(
     bio: string;
   }
 ) {
-  const res = await fetch(`${BASE_URL}/authors/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+  const res = await apiFetch(`/authors/${id}`, {
+  method: "PUT",
+  body: JSON.stringify(data),
+});
 
   if (!res.ok) {
     throw new Error(await res.text());
@@ -197,10 +186,9 @@ export async function updateAuthor(
 }
 
 export async function deleteAuthor(id: number) {
-  const res = await fetch(`${BASE_URL}/authors/${id}`, {
-    method: "DELETE",
-  });
-
+  const res = await apiFetch(`/authors/${id}`, {
+  method: "DELETE",
+});
   if (!res.ok) {
     throw new Error(await res.text());
   }
@@ -216,13 +204,10 @@ export async function createCategory(data: {
   slug: string;
   description: string;
 }) {
-  const res = await fetch(`${BASE_URL}/categories`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+const res = await apiFetch("/categories", {
+  method: "POST",
+  body: JSON.stringify(data),
+});
 
   if (!res.ok) {
     const error = await res.text();
@@ -241,8 +226,39 @@ export async function updateCategory(
   }
 ) 
 {
-  const res = await fetch(`${BASE_URL}/categories/${id}`, {
-    method: "PUT",
+  const res = await apiFetch(`/categories/${id}`, {
+  method: "PUT",
+  body: JSON.stringify(data),
+});
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return res.json();
+}
+
+
+export async function deleteCategory(id: number) {
+ const res = await apiFetch(`/categories/${id}`, {
+  method: "DELETE",
+});
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return true;
+}
+
+//auth dashboard
+export async function login(data: {
+  username: string;
+  password: string;
+}) {
+  const res = await fetch(`${BASE_URL}/auth/login`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
@@ -257,18 +273,14 @@ export async function updateCategory(
   return res.json();
 }
 
-
-export async function deleteCategory(id: number) {
-  const res = await fetch(`${BASE_URL}/categories/${id}`, {
-    method: "DELETE",
+export async function getCurrentUser() {
+  const res = await apiFetch("/auth/me", {
+    method: "GET",
   });
 
   if (!res.ok) {
-    const error = await res.text();
-    throw new Error(error);
+    throw new Error("Cannot fetch current user");
   }
 
-  return true;
+  return res.json();
 }
-
-

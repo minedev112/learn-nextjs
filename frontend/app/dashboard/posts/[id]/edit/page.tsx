@@ -1,5 +1,5 @@
 
-import DashboardHeader from "@/components/Dashboard/DashboardHeader";
+
 import PostForm from "@/components/Dashboard/PostForm";
 import { getAuthors, getCategories, getBlogsId } from "@/services/api";
 interface EditPostPageProps {
