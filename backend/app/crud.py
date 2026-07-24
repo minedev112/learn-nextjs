@@ -1,8 +1,22 @@
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, selectinload
 
 from . import models, schemas
+from .security import hash_password
 from .utils import slugify
+
+
+# ---------- User ----------
+def get_user_by_username(db: Session, username: str) -> models.User | None:
+    return db.scalar(select(models.User).where(models.User.username == username))
+
+
+def create_user(db: Session, username: str, password: str) -> models.User:
+    user = models.User(username=username, password_hash=hash_password(password))
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 def _unique_slug(db: Session, model, base: str, exclude_id: int | None = None) -> str:
@@ -34,6 +48,30 @@ def _derive_excerpt(content: str, limit: int = 160) -> str | None:
 def list_categories(db: Session, skip: int = 0, limit: int = 100) -> list[models.Category]:
     stmt = select(models.Category).order_by(models.Category.id).offset(skip).limit(limit)
     return list(db.scalars(stmt).all())
+
+
+def count_categories(db: Session) -> int:
+    return db.scalar(select(func.count(models.Category.id))) or 0
+
+
+def post_counts_by_category(db: Session) -> dict[int, int]:
+    rows = db.execute(
+        select(models.Blog.category_id, func.count(models.Blog.id)).group_by(
+            models.Blog.category_id
+        )
+    ).all()
+    return {cid: count for cid, count in rows if cid is not None}
+
+
+def count_category_blogs(db: Session, category_id: int) -> int:
+    return (
+        db.scalar(
+            select(func.count(models.Blog.id)).where(
+                models.Blog.category_id == category_id
+            )
+        )
+        or 0
+    )
 
 
 def get_category(db: Session, category_id: int) -> models.Category | None:
@@ -80,6 +118,30 @@ def list_authors(db: Session, skip: int = 0, limit: int = 100) -> list[models.Au
     return list(db.scalars(stmt).all())
 
 
+def count_authors(db: Session) -> int:
+    return db.scalar(select(func.count(models.Author.id))) or 0
+
+
+def post_counts_by_author(db: Session) -> dict[int, int]:
+    rows = db.execute(
+        select(models.Blog.author_id, func.count(models.Blog.id)).group_by(
+            models.Blog.author_id
+        )
+    ).all()
+    return {aid: count for aid, count in rows if aid is not None}
+
+
+def count_author_blogs(db: Session, author_id: int) -> int:
+    return (
+        db.scalar(
+            select(func.count(models.Blog.id)).where(
+                models.Blog.author_id == author_id
+            )
+        )
+        or 0
+    )
+
+
 def get_author(db: Session, author_id: int) -> models.Author | None:
     return db.get(models.Author, author_id)
 
@@ -106,6 +168,18 @@ def delete_author(db: Session, author: models.Author) -> None:
 
 
 # ---------- Blog ----------
+def _apply_blog_filters(stmt, category_id, author_id, published, search):
+    if category_id is not None:
+        stmt = stmt.where(models.Blog.category_id == category_id)
+    if author_id is not None:
+        stmt = stmt.where(models.Blog.author_id == author_id)
+    if published is not None:
+        stmt = stmt.where(models.Blog.published == published)
+    if search:
+        stmt = stmt.where(models.Blog.title.ilike(f"%{search}%"))
+    return stmt
+
+
 def list_blogs(
     db: Session,
     skip: int = 0,
@@ -115,17 +189,32 @@ def list_blogs(
     published: bool | None = None,
     search: str | None = None,
 ) -> list[models.Blog]:
-    stmt = select(models.Blog)
-    if category_id is not None:
-        stmt = stmt.where(models.Blog.category_id == category_id)
-    if author_id is not None:
-        stmt = stmt.where(models.Blog.author_id == author_id)
-    if published is not None:
-        stmt = stmt.where(models.Blog.published == published)
-    if search:
-        stmt = stmt.where(models.Blog.title.ilike(f"%{search}%"))
-    stmt = stmt.order_by(models.Blog.created_at.desc()).offset(skip).limit(limit)
+    stmt = _apply_blog_filters(
+        select(models.Blog), category_id, author_id, published, search
+    )
+    # Eager-load relations so list responses can embed category/author without N+1.
+    stmt = (
+        stmt.options(
+            selectinload(models.Blog.category), selectinload(models.Blog.author)
+        )
+        .order_by(models.Blog.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
     return list(db.scalars(stmt).all())
+
+
+def count_blogs(
+    db: Session,
+    category_id: int | None = None,
+    author_id: int | None = None,
+    published: bool | None = None,
+    search: str | None = None,
+) -> int:
+    stmt = _apply_blog_filters(
+        select(func.count(models.Blog.id)), category_id, author_id, published, search
+    )
+    return db.scalar(stmt) or 0
 
 
 def get_blog(db: Session, blog_id: int) -> models.Blog | None:
